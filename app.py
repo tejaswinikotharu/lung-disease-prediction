@@ -35,25 +35,27 @@ if file is not None:
         img_array = np.expand_dims(img_array, axis=0)
 
         # ============================
-        # PREDICTION (SavedModel)
+        # PREDICTION
         # ============================
 
         infer = model.signatures["serving_default"]
         prediction = infer(tf.constant(img_array))
         prediction = list(prediction.values())[0].numpy()
 
-        # Normalize probabilities
+        # Normalize
         prediction = prediction / np.sum(prediction)
 
         predicted_index = int(np.argmax(prediction))
         confidence = float(np.max(prediction) * 100)
 
         # ============================
-        # CONFIDENCE CHECK (ONLY)
+        # 🔥 ENTROPY CHECK (KEY FIX)
         # ============================
 
-        if confidence < 70:
-            st.error("❌ Unclear or not a valid chest X-ray")
+        entropy = -np.sum(prediction * np.log(prediction + 1e-8))
+
+        if confidence < 75 or entropy > 1.0:
+            st.error("❌ Not a valid chest X-ray")
             st.stop()
 
         result = class_names[predicted_index]
