@@ -12,7 +12,7 @@ warnings.filterwarnings("ignore")
 @st.cache_resource
 def load_model():
     from tensorflow.keras.models import load_model
-    return load_model("model.h5", compile=False)
+    return load_model("model.keras", compile=False)
 
 model = load_model()
 
