@@ -8,7 +8,14 @@ warnings.filterwarnings("ignore")
 @st.cache_resource
 def load_model():
     from tensorflow.keras.models import load_model
-    return load_model("model.keras", compile=False, safe_mode=False)
+    from tensorflow.keras.applications import MobileNetV2
+
+    return load_model(
+        "model.keras",
+        compile=False,
+        safe_mode=False,
+        custom_objects={"MobileNetV2": MobileNetV2}
+    )
 
 model = load_model()
 
