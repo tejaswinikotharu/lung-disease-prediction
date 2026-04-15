@@ -30,7 +30,12 @@ if file is not None:
         img_array = np.array(img, dtype=np.float32) / 255.0
         img_array = np.expand_dims(img_array, axis=0)
 
-        # 🔥 FINAL FIX
+        color_variation = np.std(img_array)
+
+        if color_variation > 0.15:
+            st.error("❌ This does not look like a chest X-ray")
+            st.stop()
+
         infer = model.signatures["serving_default"]
         prediction = infer(tf.constant(img_array))
         prediction = list(prediction.values())[0].numpy()
@@ -40,8 +45,12 @@ if file is not None:
         predicted_index = int(np.argmax(prediction))
         confidence = float(np.max(prediction) * 100)
 
-        result = class_names[predicted_index]
+        if confidence < 75:
+            st.error("❌ Not a valid chest X-ray or unclear image")
+            st.stop()
 
+        result = class_names[predicted_index]
+        
         st.markdown("---")
 
         if result == "NORMAL":
