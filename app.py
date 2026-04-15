@@ -1,14 +1,14 @@
 import streamlit as st
 import numpy as np
 from PIL import Image
+import tensorflow as tf
 import warnings
 
 warnings.filterwarnings("ignore")
 
 @st.cache_resource
 def load_model():
-    import tensorflow as tf
-    return tf.keras.models.load_model("model_saved")
+    return tf.saved_model.load("model_saved")
 
 model = load_model()
 
@@ -30,11 +30,11 @@ if file is not None:
         img_array = np.array(img, dtype=np.float32) / 255.0
         img_array = np.expand_dims(img_array, axis=0)
 
-        # 🔥 FIXED FOR SAVEDMODEL
-        prediction = model(img_array)
-        prediction = prediction.numpy()
+        # 🔥 FINAL FIX
+        infer = model.signatures["serving_default"]
+        prediction = infer(tf.constant(img_array))
+        prediction = list(prediction.values())[0].numpy()
 
-        # normalize
         prediction = prediction / np.sum(prediction)
 
         predicted_index = int(np.argmax(prediction))
