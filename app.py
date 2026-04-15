@@ -30,9 +30,11 @@ if file is not None:
         img_array = np.array(img, dtype=np.float32) / 255.0
         img_array = np.expand_dims(img_array, axis=0)
 
-        prediction = model.predict(img_array, verbose=0)
+        # 🔥 FIXED FOR SAVEDMODEL
+        prediction = model(img_array)
+        prediction = prediction.numpy()
 
-        # safer normalization
+        # normalize
         prediction = prediction / np.sum(prediction)
 
         predicted_index = int(np.argmax(prediction))
