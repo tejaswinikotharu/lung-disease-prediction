@@ -27,30 +27,41 @@ if file is not None:
         img = img.resize((224, 224))
         st.image(img, caption="Uploaded Image", width=400)
 
+        # ============================
+        # PREPROCESS
+        # ============================
+
         img_array = np.array(img, dtype=np.float32) / 255.0
         img_array = np.expand_dims(img_array, axis=0)
 
-        color_variation = np.std(img_array)
-
-        if color_variation > 0.15:
-            st.error("❌ This does not look like a chest X-ray")
-            st.stop()
+        # ============================
+        # PREDICTION (SavedModel)
+        # ============================
 
         infer = model.signatures["serving_default"]
         prediction = infer(tf.constant(img_array))
         prediction = list(prediction.values())[0].numpy()
 
+        # Normalize probabilities
         prediction = prediction / np.sum(prediction)
 
         predicted_index = int(np.argmax(prediction))
         confidence = float(np.max(prediction) * 100)
 
-        if confidence < 75:
-            st.error("❌ Not a valid chest X-ray or unclear image")
+        # ============================
+        # CONFIDENCE CHECK (ONLY)
+        # ============================
+
+        if confidence < 70:
+            st.error("❌ Unclear or not a valid chest X-ray")
             st.stop()
 
         result = class_names[predicted_index]
-        
+
+        # ============================
+        # RESULT
+        # ============================
+
         st.markdown("---")
 
         if result == "NORMAL":
@@ -59,6 +70,10 @@ if file is not None:
             st.error(f"🧾 Prediction: {result}")
 
         st.write(f"📊 Confidence: {confidence:.2f}%")
+
+        # ============================
+        # DISCLAIMER
+        # ============================
 
         st.warning("⚠️ This is an AI-based prediction. Please consult a doctor for confirmation.")
 
