@@ -7,15 +7,8 @@ warnings.filterwarnings("ignore")
 
 @st.cache_resource
 def load_model():
-    from tensorflow.keras.models import load_model
-    from tensorflow.keras.applications import MobileNetV2
-
-    return load_model(
-        "model.keras",
-        compile=False,
-        safe_mode=False,
-        custom_objects={"MobileNetV2": MobileNetV2}
-    )
+    import tensorflow as tf
+    return tf.keras.models.load_model("model_saved")
 
 model = load_model()
 
@@ -37,11 +30,9 @@ if file is not None:
         img_array = np.array(img, dtype=np.float32) / 255.0
         img_array = np.expand_dims(img_array, axis=0)
 
-        prediction = model.predict(img_array)
+        prediction = model.predict(img_array, verbose=0)
 
-        temperature = 2.0
-        prediction = np.log(prediction + 1e-8) / temperature
-        prediction = np.exp(prediction)
+        # safer normalization
         prediction = prediction / np.sum(prediction)
 
         predicted_index = int(np.argmax(prediction))
